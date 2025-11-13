@@ -12,6 +12,9 @@ namespace MiniDashboard.Context.DTO
         public List<AuthorDto> Authors { get; set; } = [];
         public List<GenreDto> Genres { get; set; } = [];
 
+        public string AuthorString => string.Join("; ", Authors.ConvertAll(x => x.Name).Order());
+        public string GenreString => string.Join("; ", Genres.ConvertAll(x => x.Name).Order());
+
         public BookDto()
         {
         }

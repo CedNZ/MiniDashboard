@@ -28,8 +28,8 @@
                 <DataGridTextColumn Header="SubTitle" Binding="{Binding SubTitle}" Width="20*" />
                 <DataGridTextColumn Header="#" Binding="{Binding SeriesNumber}" Width="10*" />
                 <DataGridTextColumn Header="Series" Binding="{Binding Series}" Width="40*" />
-                <DataGridTextColumn Header="Authors" Binding="{Binding Authors, Converter={StaticResource ObjToCsv}, ConverterParameter=Name}" Width="50*" />
-                <DataGridTextColumn Header="Genres" Binding="{Binding Genres, Converter={StaticResource ObjToCsv}, ConverterParameter=Name}" Width="40*" />
+                <DataGridTextColumn Header="Authors" Binding="{Binding AuthorString}" Width="50*" />
+                <DataGridTextColumn Header="Genres" Binding="{Binding GenreString}" Width="40*" />
 
                 <DataGridTemplateColumn Header="Edit" Width="10*">
 					<DataGridTemplateColumn.CellTemplate>
@@ -38,6 +38,21 @@
 									Padding="6 2"
 									Command="{Binding DataContext.OpenEditDialogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
 									CommandParameter="{Binding}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Delete" Width="15*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Delete"
+                                    Padding="6 2"
+                                    Command="{Binding DataContext.DeleteBookCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" 
+                                    Background="#C62828"
+                                    Foreground="White"
+                                    BorderBrush="#B71C1C"
+                                    BorderThickness="1"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

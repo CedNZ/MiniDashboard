@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows;
+using MiniDashboard.App.Commands;
 using MiniDashboard.Context.DTO;
 using MiniDashboard.Context.Interfaces;
 
@@ -15,6 +17,7 @@ namespace MiniDashboard.App.ViewModels
         public RelayCommand OpenCreateDialogCommand { get; }
         public RelayCommand<BookDto> OpenEditDialogCommand { get; }
         public RelayCommand CancelDialogCommand { get; }
+        public AsyncRelayCommand<BookDto> DeleteBookCommand { get; }
 
         public BooksViewModel(IBooksService booksService)
         {
@@ -25,6 +28,7 @@ namespace MiniDashboard.App.ViewModels
             OpenCreateDialogCommand = new RelayCommand(OpenCreateDialog);
             OpenEditDialogCommand = new RelayCommand<BookDto>(OpenEditDialog);
             CancelDialogCommand = new RelayCommand(CancelDialog);
+            DeleteBookCommand = new AsyncRelayCommand<BookDto>(DeleteBookAsync);
 
             _ = LoadBooksAsync();
         }
@@ -115,6 +119,7 @@ namespace MiniDashboard.App.ViewModels
 
         private void OpenCreateDialog()
         {
+            BookId = null;
             Title = "";
             SubTitle = null;
             Series = null;
@@ -141,6 +146,17 @@ namespace MiniDashboard.App.ViewModels
         private void CancelDialog()
         {
             IsDialogOpen = false;
+        }
+
+        private async Task DeleteBookAsync(BookDto book)
+        {
+            var messageBoxResult = MessageBox.Show($"Are you sure you want to delete '{book.Title}'?",
+                "Delete Confirmation", MessageBoxButton.YesNo);
+            if (messageBoxResult == MessageBoxResult.Yes)
+            {
+                await _booksService.DeleteBookAsync(book.BookId);
+                Books.RemoveAt(Books.IndexOf(book));
+            }
         }
 
         private bool CanSave() => Title != "" && Authors != "";

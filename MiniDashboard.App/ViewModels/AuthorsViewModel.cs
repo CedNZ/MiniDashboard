@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
+using MiniDashboard.App.Commands;
 using MiniDashboard.Context.DTO;
 using MiniDashboard.Context.Interfaces;
 

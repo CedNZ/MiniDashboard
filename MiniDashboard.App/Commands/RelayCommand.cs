@@ -1,6 +1,4 @@
-﻿using MiniDashboard.App.Commands;
-
-namespace MiniDashboard.App.ViewModels
+﻿namespace MiniDashboard.App.Commands
 {
     public class RelayCommand : CommandBase
     {
