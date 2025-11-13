@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="MiniDashboard.Api/MiniDashboard.Api.csproj" />
+  <Project Path="MiniDashboard.App/MiniDashboard.App.csproj" />
+  <Project Path="MiniDashboard.Context/MiniDashboard.Context.csproj" Id="7337a2da-31e1-4182-b8f2-ee1458a61fbc" />
+  <Project Path="MiniDashboard.Tests.IntegrationTests/MiniDashboard.Tests.IntegrationTests.csproj" />
+  <Project Path="MiniDashboard.Tests.UnitTests/MiniDashboard.Tests.UnitTests.csproj" />
+</Solution>

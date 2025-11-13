@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MiniDashboard.Api.Services.Interfaces;
 using MiniDashboard.Context.DTO;
+using MiniDashboard.Context.Interfaces;
 
 namespace MiniDashboard.Api.Controllers
 {
@@ -18,29 +18,21 @@ namespace MiniDashboard.Api.Controllers
         [Route("authors")]
         public async Task<List<AuthorDto>> GetAuthors()
         {
-            var authors = await _authorService.GetAuthorsAsync();
-            return authors.ConvertAll(x => new AuthorDto(x));
+            return await _authorService.GetAuthorsAsync();
         }
 
         [HttpGet]
         [Route("authors/{id:int}")]
         public async Task<AuthorDto?> GetAuthorById(int id)
         {
-            var author = await _authorService.GetAuthorByIdAsync(id);
-            if (author is not null)
-            {
-                return new AuthorDto(author);
-            }
-
-            return null;
+            return await _authorService.GetAuthorByIdAsync(id);
         }
 
         [HttpPost]
         [Route("authors")]
         public async Task<AuthorDto> CreateAuthor([FromBody] AuthorDto authorDto)
         {
-            var author = await _authorService.CreateAuthorAsync(authorDto.ToEntity());
-            return new AuthorDto(author);
+            return await _authorService.CreateAuthorAsync(authorDto);
         }
 
         [HttpPut]
@@ -48,8 +40,7 @@ namespace MiniDashboard.Api.Controllers
         public async Task<AuthorDto> UpdateAuthor(int id, [FromBody] AuthorDto authorDto)
         {
             authorDto.AuthorId = id;
-            var author = await _authorService.UpdateAuthorAsync(authorDto.ToEntity());
-            return new AuthorDto(author);
+            return await _authorService.UpdateAuthorAsync(authorDto);
         }
 
         [HttpDelete]

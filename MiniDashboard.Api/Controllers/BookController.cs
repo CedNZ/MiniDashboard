@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MiniDashboard.Api.Services.Interfaces;
 using MiniDashboard.Context.DTO;
+using MiniDashboard.Context.Interfaces;
 
 namespace MiniDashboard.Api.Controllers
 {
@@ -19,46 +19,36 @@ namespace MiniDashboard.Api.Controllers
         [Route("books")]
         public async Task<List<BookDto>> GetBooks()
         {
-            var books = await _booksService.GetAllAsync();
-            return books.ConvertAll(x => new BookDto(x));
+            return await _booksService.GetAllAsync();
         }
 
         [HttpGet]
         [Route("books/{id:int}")]
         public async Task<BookDto?> GetBookById(int id)
         {
-            var book = await _booksService.GetByIdAsync(id);
-            if (book != null)
-            {
-                return new BookDto(book);
-            }
-
-            return null;
+            return await _booksService.GetByIdAsync(id);
         }
 
         [HttpGet]
         [Route("books/search")]
         public async Task<List<BookDto>> SearchBooks([FromQuery] string query)
         {
-            var books = await _booksService.QueryByNameAsync(query);
-            return books.ConvertAll(x => new BookDto(x));
+            return await _booksService.QueryByNameAsync(query);
         }
 
         [HttpPost]
         [Route("books")]
-        public async Task<BookDto> CreateBook([FromBody] BookDto bookDto)
+        public async Task<BookDto?> CreateBook([FromBody] BookDto bookDto)
         {
-            var book = await _booksService.CreateBookAsync(bookDto.ToEntity());
-            return new BookDto(book);
+            return await _booksService.CreateBookAsync(bookDto);
         }
 
         [HttpPut]
         [Route("books/{id:int}")]
-        public async Task<BookDto> UpdateBook(int id, [FromBody] BookDto bookDto)
+        public async Task<BookDto?> UpdateBook(int id, [FromBody] BookDto bookDto)
         {
             bookDto.BookId = id;
-            var book = await _booksService.UpdateBookAsync(bookDto.ToEntity());
-            return new BookDto(book);
+            return await _booksService.UpdateBookAsync(bookDto);
         }
 
         [HttpDelete]

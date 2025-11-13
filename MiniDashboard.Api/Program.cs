@@ -1,7 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using MiniDashboard.Api.Services;
-using MiniDashboard.Api.Services.Interfaces;
+using MiniDashboard.Context.Interfaces;
 
 namespace MiniDashboard.Api
 {

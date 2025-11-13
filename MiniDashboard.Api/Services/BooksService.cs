@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MiniDashboard.Api.Services.Interfaces;
 using MiniDashboard.Context.ApiModels;
+using MiniDashboard.Context.DTO;
+using MiniDashboard.Context.Interfaces;
 
 namespace MiniDashboard.Api.Services
 {
@@ -13,41 +14,83 @@ namespace MiniDashboard.Api.Services
             _context = context;
         }
 
-        public async Task<Book?> GetByIdAsync(int id)
+        public async Task<BookDto?> GetByIdAsync(int id)
         {
-            return await _context.Books.FindAsync(id);
+            var book = await _context.Books.FindAsync(id);
+            if (book == null)
+            {
+                return null;
+            }
+            return new BookDto(book);
         }
 
-        public async Task<List<Book>> GetAllAsync()
+        public async Task<List<BookDto>> GetAllAsync()
         {
-            return await _context.Books.ToListAsync();
+            var books = await _context.Books.ToListAsync();
+            return books.ConvertAll(x => new BookDto(x));
         }
 
-        public async Task<List<Book>> QueryByNameAsync(string query)
+        public async Task<List<BookDto>> QueryByNameAsync(string query)
         {
-            return await _context.Books
+            var books = await _context.Books
                 .Where(x => x.Title.Contains(query)
                     || (x.SubTitle != null && x.SubTitle.Contains(query)))
                 .ToListAsync();
+
+            return books.ConvertAll(x => new BookDto(x));
         }
 
-        public async Task<Book> CreateBookAsync(Book book)
+        public async Task<BookDto?> CreateBookAsync(BookDto book)
         {
-            _context.Books.Add(book);
+            var entity = book.ToEntity();
+
+            entity = await PopulateAuthorsAndGenres(entity);
+
+            _context.Books.Add(entity);
             await _context.SaveChangesAsync();
+            return new BookDto(entity);
+        }
+
+        private async Task<Book> PopulateAuthorsAndGenres(Book book)
+        {
+            var authorNames = book.Authors.Select(x => x.Name);
+            var genreNames = book.Genres.Select(x => x.Name);
+
+            var existingAuthors = await _context.Authors.Where(x => authorNames.Contains(x.Name)).ToListAsync();
+            var existingGenres = await _context.Genres.Where(x => genreNames.Contains(x.Name)).ToListAsync();
+
+            List<Author> authors = new List<Author>(book.Authors.Count());
+            foreach (var author in book.Authors)
+            {
+                var existingAuthor = existingAuthors.FirstOrDefault(x => x.Name == author.Name);
+                authors.Add(existingAuthor ?? author);
+            }
+            book.Authors = authors;
+
+            List<Genre> genres = new List<Genre>(book.Genres.Count());
+            foreach (var genre in book.Genres)
+            {
+                var existingGenre = existingGenres.FirstOrDefault(x => x.Name == genre.Name);
+                genres.Add(existingGenre ?? genre);
+            }
+            book.Genres = genres;
             return book;
         }
 
-        public async Task<Book> UpdateBookAsync(Book book)
+        public async Task<BookDto?> UpdateBookAsync(BookDto book)
         {
-            _context.Books.Update(book);
+            var entity = book.ToEntity();
+
+            entity = await PopulateAuthorsAndGenres(entity);
+
+            _context.Books.Update(entity);
             await _context.SaveChangesAsync();
-            return book;
+            return new BookDto(entity);
         }
 
         public async Task DeleteBookAsync(int id)
         {
-            var book = await GetByIdAsync(id);
+            var book = await _context.Books.FindAsync(id);
             if (book != null)
             {
                 _context.Books.Remove(book);

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MiniDashboard.Api.Services.Interfaces;
-using MiniDashboard.Context.ApiModels;
+using MiniDashboard.Context.DTO;
+using MiniDashboard.Context.Interfaces;
 
 namespace MiniDashboard.Api.Services
 {
@@ -13,33 +13,42 @@ namespace MiniDashboard.Api.Services
             _context = context;
         }
 
-        public async Task<Author?> GetAuthorByIdAsync(int id)
+        public async Task<AuthorDto?> GetAuthorByIdAsync(int id)
         {
-            return await _context.Authors.FindAsync(id);
+            var author = await _context.Authors.FindAsync(id);
+            if (author == null)
+            {
+                return null;
+            }
+
+            return new AuthorDto(author);
         }
 
-        public async Task<List<Author>> GetAuthorsAsync()
+        public async Task<List<AuthorDto>> GetAuthorsAsync()
         {
-            return await _context.Authors.ToListAsync();
+            var authors = await _context.Authors.ToListAsync();
+            return authors.ConvertAll(x => new AuthorDto(x));
         }
 
-        public async Task<Author> CreateAuthorAsync(Author author)
+        public async Task<AuthorDto?> CreateAuthorAsync(AuthorDto author)
         {
-            _context.Authors.Add(author);
+            var entity = author.ToEntity();
+            _context.Authors.Add(entity);
             await _context.SaveChangesAsync();
-            return author;
+            return new AuthorDto(entity);
         }
 
-        public async Task<Author> UpdateAuthorAsync(Author author)
+        public async Task<AuthorDto?> UpdateAuthorAsync(AuthorDto author)
         {
-            _context.Authors.Update(author);
+            var entity = author.ToEntity();
+            _context.Authors.Update(entity);
             await _context.SaveChangesAsync();
-            return author;
+            return new AuthorDto(entity);
         }
 
         public async Task DeleteAuthorAsync(int id)
         {
-            var author = await GetAuthorByIdAsync(id);
+            var author = await _context.Authors.FindAsync(id);
             if (author != null)
             {
                 _context.Authors.Remove(author);
