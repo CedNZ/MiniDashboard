@@ -122,5 +122,23 @@
                 </StackPanel>
 			</Grid>
 		</Border>
-	</Grid>
+
+        <!--Loading Overlay-->
+        <Border Grid.RowSpan="2"
+                Background="#80000000"
+                Visibility="{Binding Loading, Converter={StaticResource BoolToVis}}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="White"
+                        Margin="20"
+                        Orientation="Vertical">
+                <TextBlock Text="Loading..."
+                           HorizontalAlignment="Center"
+                           Margin="0 0 0 10" />
+                <ProgressBar IsIndeterminate="True"
+                             Width="150"
+                             Height="16" />
+            </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

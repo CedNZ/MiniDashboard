@@ -49,7 +49,7 @@ namespace MiniDashboard.App.ViewModels
         public string? Title
         {
             get;
-            set => SetField(ref field, value);
+            set => SetField(ref field, value, commands: [SaveBookCommand]);
         }
 
         public string? SubTitle
@@ -73,7 +73,7 @@ namespace MiniDashboard.App.ViewModels
         public string? Authors
         {
             get;
-            set => SetField(ref field, value);
+            set => SetField(ref field, value, commands: [SaveBookCommand]);
         }
 
         public string? Genres
@@ -94,7 +94,13 @@ namespace MiniDashboard.App.ViewModels
             set => SetField(ref field, value);
         }
 
-        protected bool SetField<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string propertyName = null!)
+        public bool Loading
+        {
+            get;
+            set => SetField(ref field, value);
+        }
+
+        protected bool SetField<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string propertyName = null!, params List<CommandBase> commands)
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
             {
@@ -103,18 +109,25 @@ namespace MiniDashboard.App.ViewModels
 
             field = value;
             OnPropertyChanged(propertyName);
+
+            commands.ForEach(x => x.RaiseCanExecuteChanged());
+
             return true;
         }
         #endregion
 
         private async Task LoadBooksAsync()
         {
+            Loading = true;
+
             Books.Clear();
             var books = await _booksService.GetAllAsync();
             foreach (var bookDto in books)
             {
                 Books.Add(bookDto);
             }
+
+            Loading = false;
         }
 
         private void OpenCreateDialog()
@@ -154,15 +167,18 @@ namespace MiniDashboard.App.ViewModels
                 "Delete Confirmation", MessageBoxButton.YesNo);
             if (messageBoxResult == MessageBoxResult.Yes)
             {
+                Loading = true;
                 await _booksService.DeleteBookAsync(book.BookId);
                 Books.RemoveAt(Books.IndexOf(book));
+                Loading = false;
             }
         }
 
-        private bool CanSave() => Title != "" && Authors != "";
+        private bool CanSave() => !string.IsNullOrEmpty(Title) && !string.IsNullOrEmpty(Authors);
 
         private async Task SaveAsync()
         {
+            Loading = true;
             var seriesNum = double.TryParse(SeriesNumber, out var sNum) ? sNum : (double?)null;
 
             var book = new BookDto
@@ -209,6 +225,7 @@ namespace MiniDashboard.App.ViewModels
             }
 
             IsDialogOpen = false;
+            Loading = false;
         }
     }
 }
