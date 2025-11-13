@@ -1,0 +1,6 @@
+@MiniDashboard.API_HostAddress = http://localhost:5273
+
+GET {{MiniDashboard.API_HostAddress}}/authors/
+Accept: application/json
+
+###
