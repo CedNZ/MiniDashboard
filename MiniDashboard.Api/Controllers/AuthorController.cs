@@ -30,14 +30,14 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpPost]
         [Route("authors")]
-        public async Task<AuthorDto> CreateAuthor([FromBody] AuthorDto authorDto)
+        public async Task<AuthorDto?> CreateAuthor([FromBody] AuthorDto authorDto)
         {
             return await _authorService.CreateAuthorAsync(authorDto);
         }
 
         [HttpPut]
         [Route("authors/{id:int}")]
-        public async Task<AuthorDto> UpdateAuthor(int id, [FromBody] AuthorDto authorDto)
+        public async Task<AuthorDto?> UpdateAuthor(int id, [FromBody] AuthorDto authorDto)
         {
             authorDto.AuthorId = id;
             return await _authorService.UpdateAuthorAsync(authorDto);

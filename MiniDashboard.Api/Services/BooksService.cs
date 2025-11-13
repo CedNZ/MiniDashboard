@@ -26,13 +26,18 @@ namespace MiniDashboard.Api.Services
 
         public async Task<List<BookDto>> GetAllAsync()
         {
-            var books = await _context.Books.ToListAsync();
+            var books = await _context.Books
+                .Include(x => x.Authors)
+                .Include(x => x.Genres)
+                .ToListAsync();
             return books.ConvertAll(x => new BookDto(x));
         }
 
         public async Task<List<BookDto>> QueryByNameAsync(string query)
         {
             var books = await _context.Books
+                .Include(x => x.Authors)
+                .Include(x => x.Genres)
                 .Where(x => x.Title.Contains(query)
                     || (x.SubTitle != null && x.SubTitle.Contains(query)))
                 .ToListAsync();
@@ -44,44 +49,59 @@ namespace MiniDashboard.Api.Services
         {
             var entity = book.ToEntity();
 
-            entity = await PopulateAuthorsAndGenres(entity);
+            entity = await PopulateAuthorsAndGenres(entity, book.Authors.ConvertAll(x => x.Name.Trim()), book.Genres.ConvertAll(x => x.Name.Trim()));
 
             _context.Books.Add(entity);
             await _context.SaveChangesAsync();
             return new BookDto(entity);
         }
 
-        private async Task<Book> PopulateAuthorsAndGenres(Book book)
+        private async Task<Book> PopulateAuthorsAndGenres(Book book, List<string> authors, List<string> genres)
         {
-            var authorNames = book.Authors.Select(x => x.Name);
-            var genreNames = book.Genres.Select(x => x.Name);
+            var existingAuthors = await _context.Authors.Where(x => authors.Contains(x.Name)).ToListAsync();
+            var existingGenres = await _context.Genres.Where(x => genres.Contains(x.Name)).ToListAsync();
 
-            var existingAuthors = await _context.Authors.Where(x => authorNames.Contains(x.Name)).ToListAsync();
-            var existingGenres = await _context.Genres.Where(x => genreNames.Contains(x.Name)).ToListAsync();
-
-            List<Author> authors = new List<Author>(book.Authors.Count());
-            foreach (var author in book.Authors)
+            book.Authors.Clear();
+            foreach (var author in authors)
             {
-                var existingAuthor = existingAuthors.FirstOrDefault(x => x.Name == author.Name);
-                authors.Add(existingAuthor ?? author);
+                var existingAuthor = existingAuthors.FirstOrDefault(x => x.Name == author);
+                book.Authors.Add(existingAuthor ?? new Author
+                {
+                    Name = author,
+                });
             }
-            book.Authors = authors;
 
-            List<Genre> genres = new List<Genre>(book.Genres.Count());
-            foreach (var genre in book.Genres)
+            book.Genres.Clear();
+            foreach (var genre in genres)
             {
-                var existingGenre = existingGenres.FirstOrDefault(x => x.Name == genre.Name);
-                genres.Add(existingGenre ?? genre);
+                var existingGenre = existingGenres.FirstOrDefault(x => x.Name == genre);
+                book.Genres.Add(existingGenre ?? new Genre
+                {
+                    Name = genre
+                });
             }
-            book.Genres = genres;
+
             return book;
         }
 
         public async Task<BookDto?> UpdateBookAsync(BookDto book)
         {
-            var entity = book.ToEntity();
+            var entity = await _context.Books
+                .Include(x => x.Authors)
+                .Include(x => x.Genres)
+                .FirstOrDefaultAsync(x => x.BookId == book.BookId);
 
-            entity = await PopulateAuthorsAndGenres(entity);
+            if (entity == null)
+            {
+                return null;
+            }
+
+            entity.Title = book.Title;
+            entity.SubTitle = book.SubTitle;
+            entity.Series = book.Series;
+            entity.SeriesNumber = book.SeriesNumber;
+
+            entity = await PopulateAuthorsAndGenres(entity, book.Authors.ConvertAll(x => x.Name.Trim()), book.Genres.ConvertAll(x => x.Name.Trim()));
 
             _context.Books.Update(entity);
             await _context.SaveChangesAsync();

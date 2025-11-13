@@ -11,8 +11,9 @@ namespace MiniDashboard.App.ViewModels
         public ObservableCollection<BookDto> Books { get; set; } = [];
 
         public AsyncRelayCommand LoadBooksCommand { get; }
-        public AsyncRelayCommand CreateBookCommand { get; }
+        public AsyncRelayCommand SaveBookCommand { get; }
         public RelayCommand OpenCreateDialogCommand { get; }
+        public RelayCommand<BookDto> OpenEditDialogCommand { get; }
         public RelayCommand CancelDialogCommand { get; }
 
         public BooksViewModel(IBooksService booksService)
@@ -20,114 +21,85 @@ namespace MiniDashboard.App.ViewModels
             _booksService = booksService;
 
             LoadBooksCommand = new AsyncRelayCommand(LoadBooksAsync);
-            CreateBookCommand = new AsyncRelayCommand(SaveAsync, CanSave);
+            SaveBookCommand = new AsyncRelayCommand(SaveAsync, CanSave);
             OpenCreateDialogCommand = new RelayCommand(OpenCreateDialog);
+            OpenEditDialogCommand = new RelayCommand<BookDto>(OpenEditDialog);
             CancelDialogCommand = new RelayCommand(CancelDialog);
+
+            _ = LoadBooksAsync();
         }
 
         #region CRUD Properties
         public bool IsDialogOpen
         {
             get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
-            }
+            set => SetField(ref field, value);
         }
 
         public int? BookId
         {
             get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
-            }
+            set => SetField(ref field, value);
         }
 
         public string? Title
         {
             get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
-            }
+            set => SetField(ref field, value);
         }
 
         public string? SubTitle
         {
             get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
-            }
+            set => SetField(ref field, value);
         }
 
         public string? Series
         {
             get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
-            }
+            set => SetField(ref field, value);
         }
 
         public string? SeriesNumber
         {
             get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
-            }
+            set => SetField(ref field, value);
         }
 
         public string? Authors
         {
             get;
-            set
-            {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
-            }
+            set => SetField(ref field, value);
         }
 
         public string? Genres
         {
             get;
-            set
+            set => SetField(ref field, value);
+        }
+
+        public string? Query
+        {
+            get;
+            set => SetField(ref field, value);
+        }
+
+        public string? ModalHeader
+        {
+            get;
+            set => SetField(ref field, value);
+        }
+
+        protected bool SetField<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string propertyName = null!)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
             {
-                if (field != value)
-                {
-                    field = value;
-                    OnPropertyChanged();
-                }
+                return false;
             }
+
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
         }
         #endregion
 
@@ -149,6 +121,20 @@ namespace MiniDashboard.App.ViewModels
             SeriesNumber = null;
             Authors = null;
             Genres = null;
+            ModalHeader = "Create Book";
+            IsDialogOpen = true;
+        }
+
+        private void OpenEditDialog(BookDto book)
+        {
+            BookId = book.BookId;
+            Title = book.Title;
+            SubTitle = book.SubTitle;
+            Series = book.Series;
+            SeriesNumber = book.SeriesNumber.ToString();
+            Authors = string.Join(';', book.Authors.Select(x => x.Name).Order());
+            Genres = string.Join(';', book.Genres.Select(x => x.Name).Order());
+            ModalHeader = $"Edit Book ({BookId})";
             IsDialogOpen = true;
         }
 
@@ -180,10 +166,30 @@ namespace MiniDashboard.App.ViewModels
                 }).ToList() ?? [],
             };
 
-            var created = await _booksService.CreateBookAsync(book);
-            if (created != null)
+            if (book.BookId > 0)
             {
-                Books.Add(created);
+                var updated = await _booksService.UpdateBookAsync(book);
+                if (updated != null)
+                {
+                    var inMemBook = Books.FirstOrDefault(x => x.BookId == book.BookId);
+                    if (inMemBook != null)
+                    {
+                        var index = Books.IndexOf(inMemBook);
+                        Books[index] = updated;
+                    }
+                    else
+                    {
+                        Books.Add(updated);
+                    }
+                }
+            }
+            else
+            {
+                var created = await _booksService.CreateBookAsync(book);
+                if (created != null)
+                {
+                    Books.Add(created);
+                }
             }
 
             IsDialogOpen = false;
