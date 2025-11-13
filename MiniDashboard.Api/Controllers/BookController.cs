@@ -5,7 +5,6 @@ using MiniDashboard.Context.Interfaces;
 namespace MiniDashboard.Api.Controllers
 {
     [ApiController]
-    //[Route("[controller]")]
     public class BookController : ControllerBase
     {
         private readonly IBooksService _booksService;
@@ -17,6 +16,7 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpGet]
         [Route("books")]
+        [ProducesResponseType<List<BookDto>>(StatusCodes.Status200OK)]
         public async Task<List<BookDto>> GetBooks()
         {
             return await _booksService.GetAllAsync();
@@ -24,6 +24,7 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpGet]
         [Route("books/{id:int}")]
+        [ProducesResponseType<BookDto>(StatusCodes.Status200OK)]
         public async Task<BookDto?> GetBookById(int id)
         {
             return await _booksService.GetByIdAsync(id);
@@ -31,6 +32,7 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpGet]
         [Route("books/search")]
+        [ProducesResponseType<List<BookDto>>(StatusCodes.Status200OK)]
         public async Task<List<BookDto>> SearchBooks([FromQuery] string query)
         {
             return await _booksService.QueryByNameAsync(query);
@@ -38,6 +40,7 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpPost]
         [Route("books")]
+        [ProducesResponseType<BookDto>(StatusCodes.Status200OK)]
         public async Task<BookDto?> CreateBook([FromBody] BookDto bookDto)
         {
             return await _booksService.CreateBookAsync(bookDto);
@@ -45,6 +48,7 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpPut]
         [Route("books/{id:int}")]
+        [ProducesResponseType<BookDto>(StatusCodes.Status200OK)]
         public async Task<BookDto?> UpdateBook(int id, [FromBody] BookDto bookDto)
         {
             bookDto.BookId = id;
@@ -53,6 +57,7 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpDelete]
         [Route("books/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task DeleteBook(int id)
         {
             await _booksService.DeleteBookAsync(id);

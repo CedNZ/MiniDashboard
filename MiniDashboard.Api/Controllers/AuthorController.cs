@@ -16,6 +16,7 @@ namespace MiniDashboard.Api.Controllers
 
         [HttpGet]
         [Route("authors")]
+        [ProducesResponseType<List<AuthorDto>>(StatusCodes.Status200OK)]
         public async Task<List<AuthorDto>> GetAuthors()
         {
             return await _authorService.GetAuthorsAsync();

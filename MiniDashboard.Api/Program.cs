@@ -1,7 +1,8 @@
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using MiniDashboard.Api.Services;
 using MiniDashboard.Context.Interfaces;
+using Scalar.AspNetCore;
 
 namespace MiniDashboard.Api
 {
@@ -15,7 +16,21 @@ namespace MiniDashboard.Api
 
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+            builder.Services.AddOpenApi(options =>
+            {
+                options.AddScalarTransformers();
+                options.AddDocumentTransformer((document, context, cancellationToken) =>
+                {
+                    document.Info = new OpenApiInfo
+                    {
+                        Title = "MiniDashboard API",
+                        Version = "v1",
+                        Description = "ASP.NET Core MVC + Scalar"
+                    };
+
+                    return Task.CompletedTask;
+                });
+            });
             builder.Services.AddDbContext<ApiDbContext>(options =>
             {
                 options.UseSqlite("Data Source=/tmp/minidashboard.sqlite");
@@ -29,6 +44,8 @@ namespace MiniDashboard.Api
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+
+                app.MapScalarApiReference();
             }
 
             app.UseAuthorization();
