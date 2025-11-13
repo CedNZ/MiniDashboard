@@ -8,11 +8,9 @@
 
         public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
         {
-            _execute = execute;
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
-
-        public event EventHandler? CanExecuteChanged;
 
         protected override bool CanExecute(object? parameter) =>
             !_isRunning && (_canExecute?.Invoke() ?? true);
@@ -31,9 +29,6 @@
                 RaiseCanExecuteChanged();
             }
         }
-
-        public void RaiseCanExecuteChanged() =>
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public class AsyncRelayCommand<T> : CommandBase

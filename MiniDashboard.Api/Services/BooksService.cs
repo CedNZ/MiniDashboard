@@ -38,8 +38,10 @@ namespace MiniDashboard.Api.Services
             var books = await _context.Books
                 .Include(x => x.Authors)
                 .Include(x => x.Genres)
-                .Where(x => x.Title.Contains(query)
-                    || (x.SubTitle != null && x.SubTitle.Contains(query)))
+                .Where(x => EF.Functions.Like(x.Title, $"%{query}%")
+                    || (x.SubTitle != null && EF.Functions.Like(x.SubTitle, $"%{query}%"))
+                    || (x.Series != null && EF.Functions.Like(x.Series, $"%{query}%"))
+                    || x.Authors.Any(a => EF.Functions.Like(a.Name, $"%{query}%")))
                 .ToListAsync();
 
             return books.ConvertAll(x => new BookDto(x));

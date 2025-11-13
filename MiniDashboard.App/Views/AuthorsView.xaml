@@ -1,13 +1,37 @@
 <UserControl x:Class="MiniDashboard.App.Views.AuthorsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<UserControl.Resources>
+		<BooleanToVisibilityConverter x:Key="BoolToVis" />
+	</UserControl.Resources>
 	<Grid>
-		<ListBox ItemsSource="{Binding Authors}">
-			<ListBox.ItemTemplate>
-				<DataTemplate>
-					<TextBlock Text="{Binding Name}" />
-				</DataTemplate>
-			</ListBox.ItemTemplate>
-		</ListBox>
+		<DataGrid ItemsSource="{Binding Authors}"
+							AutoGenerateColumns="False"
+							IsReadOnly="True">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="100*" />
+				<DataGridTextColumn Header="Books" Binding="{Binding BookCount}" Width="10*" />
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<!--Loading Overlay-->
+		<Border Grid.RowSpan="2"
+						Background="#80000000"
+						Visibility="{Binding Loading, Converter={StaticResource BoolToVis}}"
+						Padding="20"
+						CornerRadius="4">
+			<StackPanel HorizontalAlignment="Center"
+									VerticalAlignment="Center"
+									Background="White"
+									Margin="20"
+									Orientation="Vertical">
+				<TextBlock Text="Loading..."
+									 HorizontalAlignment="Center"
+									 Margin="0 0 0 10" />
+				<ProgressBar IsIndeterminate="True"
+										 Width="150"
+										 Height="16" />
+			</StackPanel>
+		</Border>
 	</Grid>
 </UserControl>

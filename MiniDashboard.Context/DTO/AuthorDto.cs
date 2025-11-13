@@ -8,6 +8,8 @@ namespace MiniDashboard.Context.DTO
         public string Name { get; set; } = "";
         public List<BookDto> Books { get; set; } = [];
 
+        public int BookCount => Books.Count;
+
         public AuthorDto()
         {
         }

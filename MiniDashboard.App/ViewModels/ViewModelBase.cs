@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using MiniDashboard.App.Commands;
 
 namespace MiniDashboard.App.ViewModels
 {
@@ -12,12 +13,19 @@ namespace MiniDashboard.App.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        //protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-        //{
-        //    if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-        //    field = value;
-        //    OnPropertyChanged(propertyName);
-        //    return true;
-        //}
+        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null!, params List<CommandBase> commands)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
+            {
+                return false;
+            }
+
+            field = value;
+            OnPropertyChanged(propertyName);
+
+            commands.ForEach(x => x.RaiseCanExecuteChanged());
+
+            return true;
+        }
     }
 }

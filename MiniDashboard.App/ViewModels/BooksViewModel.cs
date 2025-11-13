@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 using MiniDashboard.App.Commands;
 using MiniDashboard.Context.DTO;
@@ -13,6 +14,7 @@ namespace MiniDashboard.App.ViewModels
         public ObservableCollection<BookDto> Books { get; set; } = [];
 
         public AsyncRelayCommand LoadBooksCommand { get; }
+        public AsyncRelayCommand SearchBooksCommand { get; }
         public AsyncRelayCommand SaveBookCommand { get; }
         public RelayCommand OpenCreateDialogCommand { get; }
         public RelayCommand<BookDto> OpenEditDialogCommand { get; }
@@ -24,6 +26,7 @@ namespace MiniDashboard.App.ViewModels
             _booksService = booksService;
 
             LoadBooksCommand = new AsyncRelayCommand(LoadBooksAsync);
+            SearchBooksCommand = new AsyncRelayCommand(SearchBooksAsync, CanSearch);
             SaveBookCommand = new AsyncRelayCommand(SaveAsync, CanSave);
             OpenCreateDialogCommand = new RelayCommand(OpenCreateDialog);
             OpenEditDialogCommand = new RelayCommand<BookDto>(OpenEditDialog);
@@ -82,11 +85,11 @@ namespace MiniDashboard.App.ViewModels
             set => SetField(ref field, value);
         }
 
-        public string? Query
+        public string Query
         {
             get;
-            set => SetField(ref field, value);
-        }
+            set => SetField(ref field, value, commands: [SearchBooksCommand]);
+        } = "";
 
         public string? ModalHeader
         {
@@ -99,21 +102,6 @@ namespace MiniDashboard.App.ViewModels
             get;
             set => SetField(ref field, value);
         }
-
-        protected bool SetField<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string propertyName = null!, params List<CommandBase> commands)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-            {
-                return false;
-            }
-
-            field = value;
-            OnPropertyChanged(propertyName);
-
-            commands.ForEach(x => x.RaiseCanExecuteChanged());
-
-            return true;
-        }
         #endregion
 
         private async Task LoadBooksAsync()
@@ -122,6 +110,27 @@ namespace MiniDashboard.App.ViewModels
 
             Books.Clear();
             var books = await _booksService.GetAllAsync();
+            foreach (var bookDto in books)
+            {
+                Books.Add(bookDto);
+            }
+
+            Loading = false;
+        }
+
+        private bool CanSearch() => !string.IsNullOrEmpty(Query);
+
+        private async Task SearchBooksAsync()
+        {
+            if (string.IsNullOrEmpty(Query))
+            {
+                return;
+            }
+
+            Loading = true;
+
+            Books.Clear();
+            var books = await _booksService.QueryByNameAsync(Query);
             foreach (var bookDto in books)
             {
                 Books.Add(bookDto);
@@ -179,53 +188,63 @@ namespace MiniDashboard.App.ViewModels
         private async Task SaveAsync()
         {
             Loading = true;
-            var seriesNum = double.TryParse(SeriesNumber, out var sNum) ? sNum : (double?)null;
-
-            var book = new BookDto
+            try
             {
-                BookId = BookId ?? 0,
-                Title = Title ?? "",
-                SubTitle = SubTitle,
-                Series = Series,
-                SeriesNumber = seriesNum,
-                Authors = Authors?.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => new AuthorDto
-                {
-                    Name = x,
-                }).ToList() ?? [],
-                Genres = Genres?.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => new GenreDto()
-                {
-                    Name = x,
-                }).ToList() ?? [],
-            };
+                var seriesNum = double.TryParse(SeriesNumber, out var sNum) ? sNum : (double?)null;
 
-            if (book.BookId > 0)
-            {
-                var updated = await _booksService.UpdateBookAsync(book);
-                if (updated != null)
+                var book = new BookDto
                 {
-                    var inMemBook = Books.FirstOrDefault(x => x.BookId == book.BookId);
-                    if (inMemBook != null)
+                    BookId = BookId ?? 0,
+                    Title = Title ?? "",
+                    SubTitle = SubTitle,
+                    Series = Series,
+                    SeriesNumber = seriesNum,
+                    Authors = Authors?.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => new AuthorDto
                     {
-                        var index = Books.IndexOf(inMemBook);
-                        Books[index] = updated;
+                        Name = x,
+                    }).ToList() ?? [],
+                    Genres = Genres?.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(x => new GenreDto()
+                    {
+                        Name = x,
+                    }).ToList() ?? [],
+                };
+
+                if (book.BookId > 0)
+                {
+                    var updated = await _booksService.UpdateBookAsync(book);
+                    if (updated != null)
+                    {
+                        var inMemBook = Books.FirstOrDefault(x => x.BookId == book.BookId);
+                        if (inMemBook != null)
+                        {
+                            var index = Books.IndexOf(inMemBook);
+                            Books[index] = updated;
+                        }
+                        else
+                        {
+                            Books.Add(updated);
+                        }
                     }
-                    else
+                }
+                else
+                {
+                    var created = await _booksService.CreateBookAsync(book);
+                    if (created != null)
                     {
-                        Books.Add(updated);
+                        Books.Add(created);
                     }
                 }
             }
-            else
+            catch (Exception e)
             {
-                var created = await _booksService.CreateBookAsync(book);
-                if (created != null)
-                {
-                    Books.Add(created);
-                }
+                Console.WriteLine(e);
+                throw;
             }
-
-            IsDialogOpen = false;
-            Loading = false;
+            finally
+            {
+                IsDialogOpen = false;
+                Loading = false;
+            }
         }
     }
 }
