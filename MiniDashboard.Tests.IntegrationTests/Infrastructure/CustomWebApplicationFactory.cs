@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MiniDashboard.Api;
 using MiniDashboard.Context.ApiModels;
-using System.Linq;
 
 namespace MiniDashboard.Tests.IntegrationTests.Infrastructure;
 
@@ -14,15 +13,27 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
-            var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApiDbContext>));
-            if (descriptor != null)
+            var contextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ApiDbContext));
+            var contextOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApiDbContext>));
+            var contextOptionsBuilderDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(Microsoft.EntityFrameworkCore.Infrastructure.IDbContextOptionsConfiguration<ApiDbContext>));
+            if (contextDescriptor != null)
             {
-                services.Remove(descriptor);
+                services.Remove(contextDescriptor);
             }
+            if (contextOptionsDescriptor != null)
+            {
+                services.Remove(contextOptionsDescriptor);
+            }
+            if (contextOptionsBuilderDescriptor != null)
+            {
+                services.Remove(contextOptionsBuilderDescriptor);
+            }
+
+            var dbName = $"MiniDashboardIntegration_{Guid.NewGuid()}";
 
             services.AddDbContext<ApiDbContext>(options =>
             {
-                options.UseInMemoryDatabase($"MiniDashboardIntegration_{Guid.NewGuid()}");
+                options.UseInMemoryDatabase(dbName);
             });
 
             var sp = services.BuildServiceProvider();

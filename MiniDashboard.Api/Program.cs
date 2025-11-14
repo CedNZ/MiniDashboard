@@ -35,8 +35,8 @@ namespace MiniDashboard.Api
             {
                 options.UseSqlite("Data Source=/tmp/minidashboard.sqlite");
             });
-            builder.Services.AddScoped<IAuthorService, AuthorService>();
-            builder.Services.AddScoped<IBooksService, BooksService>();
+            builder.Services.AddTransient<IAuthorService, AuthorService>();
+            builder.Services.AddTransient<IBooksService, BooksService>();
 
             var app = builder.Build();
 

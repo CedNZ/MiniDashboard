@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Net.Http.Json;
 using MiniDashboard.Context.DTO;
 using MiniDashboard.Tests.IntegrationTests.Infrastructure;
@@ -24,11 +23,34 @@ public class BookEndpointsTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
+    public async Task SearchBooks_FindsBook()
+    {
+        var title = Guid.NewGuid().ToString();
+        var newBook = new BookDto
+        {
+            Title = title,
+            Authors = [new AuthorDto { Name = "Ada" }],
+            Genres = [new GenreDto { Name = "Tech" }],
+        };
+
+        var response = await _client.PostAsJsonAsync("/books", newBook);
+        response.EnsureSuccessStatusCode();
+
+        var created = await response.Content.ReadFromJsonAsync<BookDto>();
+        Assert.NotNull(created);
+        Assert.True(created!.BookId > 0);
+
+        var fetched = await _client.GetFromJsonAsync<List<BookDto>>($"/books/search?query={title}");
+        Assert.NotNull(fetched);
+        Assert.Single(fetched, x => x.Title == title);
+    }
+
+    [Fact]
     public async Task PostBooks_CreatesBook()
     {
         var newBook = new BookDto
         {
-            Title = "Integration Testing", 
+            Title = "Integration Testing",
             Authors = [new AuthorDto { Name = "Ada" }],
             Genres = [new GenreDto { Name = "Tech" }],
         };
@@ -50,7 +72,7 @@ public class BookEndpointsTests : IClassFixture<CustomWebApplicationFactory>
     {
         var books = await _client.GetFromJsonAsync<List<BookDto>>("/books");
         Assert.NotNull(books);
-        var original = Assert.Single(books!.Where(b => b.Title == "Analytical Engines"));
+        var original = Assert.Single(books, b => b.Title == "Analytical Engines");
 
         original.Title = "Analytical Engines - Updated";
         var response = await _client.PutAsJsonAsync($"/books/{original.BookId}", original);
@@ -66,7 +88,7 @@ public class BookEndpointsTests : IClassFixture<CustomWebApplicationFactory>
     {
         var newBook = new BookDto
         {
-            Title = "Disposable", 
+            Title = "Disposable",
             Authors = [new AuthorDto { Name = "Grace" }],
             Genres = [new GenreDto { Name = "History" }],
         };

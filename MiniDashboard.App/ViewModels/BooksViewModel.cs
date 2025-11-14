@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Windows;
 using MiniDashboard.App.Commands;
 using MiniDashboard.Context.DTO;
