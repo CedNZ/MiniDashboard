@@ -5,10 +5,21 @@
         public AuthorsViewModel Authors { get; }
         public BooksViewModel Books { get; }
 
+        public event Action<int>? TabChanged;
+
         public MainViewModel(AuthorsViewModel authors, BooksViewModel books)
         {
             Authors = authors;
             Books = books;
+
+            TabChanged += tabIndex =>
+            {
+                if (tabIndex == 1)
+                {
+                    Authors.LoadAuthorsCommand.Execute(null);
+                }
+            };
+
             SelectedTab = 0;
         }
 
@@ -21,14 +32,10 @@
                 {
                     field = value;
                     OnPropertyChanged();
+
+                    TabChanged?.Invoke(value);
                 }
             }
         }
-    }
-
-    public enum TabViews
-    {
-        Books,
-        Authors,
     }
 }

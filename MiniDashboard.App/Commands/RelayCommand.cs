@@ -11,10 +11,10 @@
             _canExecute = canExecute;
         }
 
-        protected override bool CanExecute(object? parameter) =>
+        public override bool CanExecute(object? parameter) =>
             _canExecute?.Invoke() ?? true;
 
-        protected override void Execute(object? parameter) =>
+        public override void Execute(object? parameter) =>
             _execute();
     }
 
@@ -29,7 +29,7 @@
             _canExecute = canExecute;
         }
 
-        protected override bool CanExecute(object? parameter)
+        public override bool CanExecute(object? parameter)
         {
             if (_canExecute == null)
             {
@@ -56,7 +56,7 @@
             return false;
         }
 
-        protected override void Execute(object? parameter)
+        public override void Execute(object? parameter)
         {
             if (parameter == null)
             {

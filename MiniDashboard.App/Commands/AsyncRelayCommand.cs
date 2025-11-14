@@ -8,14 +8,14 @@
 
         public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute)); 
             _canExecute = canExecute;
         }
 
-        protected override bool CanExecute(object? parameter) =>
+        public override bool CanExecute(object? parameter) =>
             !_isRunning && (_canExecute?.Invoke() ?? true);
 
-        protected override async void Execute(object? parameter)
+        public override async void Execute(object? parameter)
         {
             try
             {
@@ -43,7 +43,7 @@
             _canExecute = canExecute;
         }
 
-        protected override bool CanExecute(object? parameter)
+        public override bool CanExecute(object? parameter)
         {
             if (_isExecuting)
             {
@@ -69,7 +69,7 @@
             return parameter is T value && _canExecute(value);
         }
 
-        protected override async void Execute(object? parameter)
+        public override async void Execute(object? parameter)
         {
             if (!CanExecute(parameter))
             {

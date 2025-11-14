@@ -13,12 +13,12 @@ namespace MiniDashboard.App.Commands
         /// <summary>
         /// Override this to implement your can-execute logic.
         /// </summary>
-        protected virtual bool CanExecute(object? parameter) => true;
+        public virtual bool CanExecute(object? parameter) => true;
 
         /// <summary>
         /// Override this to implement your execute logic.
         /// </summary>
-        protected abstract void Execute(object? parameter);
+        public abstract void Execute(object? parameter);
 
         public void RaiseCanExecuteChanged() =>
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
