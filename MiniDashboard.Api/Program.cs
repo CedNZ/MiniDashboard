@@ -31,9 +31,11 @@ namespace MiniDashboard.Api
                     return Task.CompletedTask;
                 });
             });
+            builder.WebHost.UseUrls(builder.Configuration["Url"]!);
+
             builder.Services.AddDbContext<ApiDbContext>(options =>
             {
-                options.UseSqlite("Data Source=/tmp/minidashboard.sqlite");
+                options.UseSqlite(builder.Configuration["SqliteConnectionString"]);
             });
             builder.Services.AddTransient<IAuthorService, AuthorService>();
             builder.Services.AddTransient<IBooksService, BooksService>();

@@ -24,4 +24,10 @@
     <ProjectReference Include="..\MiniDashboard.Context\MiniDashboard.Context.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="minidashboard.sqlite">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

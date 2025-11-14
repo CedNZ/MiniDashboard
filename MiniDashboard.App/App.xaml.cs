@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniDashboard.App.Services;
 using MiniDashboard.App.ViewModels;
@@ -28,9 +29,13 @@ namespace MiniDashboard.App
 
         private void ConfigureServices(IServiceCollection services)
         {
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("./appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
             services.AddHttpClient("API", c =>
             {
-                c.BaseAddress = new Uri("http://localhost:5273");
+                c.BaseAddress = new Uri(config["Url"]!);
             });
             services.AddScoped<IAuthorService, AppAuthorsService>();
             services.AddScoped<IBooksService, AppBooksService>();
